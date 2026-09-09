@@ -94,17 +94,13 @@ textarea{min-height:76px;resize:vertical}
       <div class="preview" id="preview"></div>
     </div>
     <a class="btn" id="send" href="#" aria-disabled="true">문자로 요청 보내기</a>
-    <button class="btn kakao" id="sendKakao" type="button" hidden>💬 카카오톡으로 요청 보내기</button>
     <p class="hint" id="sendHint">누르면 문자 앱이 열립니다. 내용 확인 후 <b>전송</b>만 눌러 주세요. 입력한 동·호수는 이 폰에 저장되어 다음엔 바로 보낼 수 있어요.</p>
   </div>
 
   <div class="panel">
     <label style="margin:0">문의하기</label>
     <textarea id="ask" placeholder="예) 패딩 세탁 얼마예요? 이불도 되나요? 배달은 몇 시쯤 오나요?" style="min-height:70px"></textarea>
-    <div class="grid">
-      <a class="btn sec" id="askSms" href="#" aria-disabled="true">문자로 문의</a>
-      <a class="btn sec" id="askKakao" href="#" target="_blank" rel="noopener" hidden>카카오톡 문의</a>
-    </div>
+    <a class="btn sec" id="askSms" href="#" aria-disabled="true">문자로 문의</a>
   </div>
 
   <div class="panel" id="kakaoPanel" hidden>
@@ -147,8 +143,6 @@ const kakao = (q.get('kakao')||'').trim();
 if (kakao) {
   const base = `https://pf.kakao.com/${kakao.replace(/^https?:\/\/pf\.kakao\.com\//,'').replace(/\/.*$/,'')}`;
   $('#kakaoPanel').hidden = false; $('#kakaoFriend').href = base + '/friend';
-  $('#askKakao').hidden = false; $('#askKakao').href = base + '/chat';
-  $('#sendKakao').hidden = false;
   $('#kakaoTitle').textContent = shopName + ' 카카오톡 채널 친구 추가';
 }
 
@@ -179,7 +173,6 @@ function update(){
   $('#send').setAttribute('aria-disabled', ok ? 'false' : 'true');
   $('#send').href = ok && !canShareFiles() ? smsUrl(t) : '#';
   $('#send').textContent = (type==='delivery' ? '배달 요청 보내기' : '수거 요청 보내기') + (photos.length ? ' (사진 포함)' : ' · 문자');
-  $('#sendKakao').disabled = !ok;
   $('#sendHint').innerHTML = photos.length
     ? '누르면 공유창이 열립니다. <b>메시지</b> 또는 <b>카카오톡</b>을 고르고 세탁소를 선택해 보내 주세요.'
     : '누르면 문자 앱이 열립니다. 내용 확인 후 <b>전송</b>만 눌러 주세요. 입력한 동·호수는 이 폰에 저장되어 다음엔 바로 보낼 수 있어요.';
@@ -196,15 +189,7 @@ $('#send').addEventListener('click', async e => {
     catch(err){ if (err.name!=='AbortError') { try { await navigator.clipboard.writeText(t); } catch(_){} location.href = smsUrl(t); } }
   }
 });
-$('#sendKakao').onclick = async () => {
-  const {t, ok} = body(); if (!ok) return; remember();
-  const base = $('#askKakao').href.replace(/\/chat$/,'');
-  if (canShareFiles()) { try { await navigator.share({files:photos, text:t}); return; } catch(err){ if (err.name==='AbortError') return; } }
-  try { await navigator.clipboard.writeText(t); $('#sendHint').innerHTML = '<b>요청 내용을 복사했어요.</b> 카카오톡 채팅창에 붙여넣기 해서 보내 주세요.'; } catch(_){}
-  window.open(base + '/chat', '_blank', 'noopener');
-};
 $('#askSms').addEventListener('click', e => { if ($('#askSms').getAttribute('aria-disabled')==='true') e.preventDefault(); else remember(); });
-$('#askKakao').addEventListener('click', async () => { const a=$('#ask').value.trim(); if (a) { try { await navigator.clipboard.writeText(`[문의] ${unitPrefix()}${a}`); } catch(_){} } });
 update();
 })();
 </script>
